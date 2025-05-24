@@ -15,7 +15,7 @@ autocmd('TextYankPost', {
 })
 
 -- Remove trailing whitespaces on save
-autocmd({"BufWritePre"}, {
+autocmd({ "BufWritePre" }, {
     group = CustomAugroup,
     command = [[%s/\s\+$//e]],
 })

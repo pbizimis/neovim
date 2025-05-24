@@ -12,7 +12,8 @@ return {
             -- stylua: ignore start
             map("n", "]h", gs.next_hunk, "Next Hunk")
             map("n", "[h", gs.prev_hunk, "Prev Hunk")
-            map("n", "<leader>ghp", gs.preview_hunk, "Preview Hunk")
+            map("n", "<leader>ghu", gs.preview_hunk, "Preview Hunk")
+            map("n", "<leader>ghp", gs.reset_hunk, "Reset Hunk")
             map("n", "<leader>ghk", function() gs.blame_line({ full = true }) end, "Blame Line")
 		end,
 	},

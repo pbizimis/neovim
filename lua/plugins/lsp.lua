@@ -3,10 +3,8 @@ return {
         "neovim/nvim-lspconfig",
         event = { "BufReadPre", "BufNewFile" },
         dependencies = {
-            { "folke/neodev.nvim", opts = {} },
-            "mason.nvim",
-            "williamboman/mason-lspconfig.nvim",
-            "hrsh7th/cmp-nvim-lsp",
+            "mason-org/mason.nvim",
+            "mason-org/mason-lspconfig.nvim",
         },
         config = function()
             vim.api.nvim_create_autocmd('LspAttach', {
@@ -30,32 +28,20 @@ return {
             })
 
             require('mason').setup()
-            require('mason-lspconfig').setup({
-                ensure_installed = {}
-            })
-
-            local lspconfig = require('lspconfig')
-            local lsp_capabilities = require('cmp_nvim_lsp').default_capabilities()
-
-            require('mason-lspconfig').setup_handlers({
-                function(server_name)
-                    lspconfig[server_name].setup({
-                        capabilities = lsp_capabilities,
-                    })
-                end,
-            })
+            require('mason-lspconfig').setup()
         end,
     },
     {
         "jay-babu/mason-null-ls.nvim",
         event = { "BufReadPre", "BufNewFile" },
         dependencies = {
-            "williamboman/mason.nvim",
-            "jose-elias-alvarez/null-ls.nvim",
+            "mason-org/mason.nvim",
+            "nvimtools/none-ls.nvim",
         },
         config = function()
             require("mason").setup()
             require("mason-null-ls").setup({
+
                 ensure_installed = {
                     -- Opt to list sources here, when available in mason.
                 },
