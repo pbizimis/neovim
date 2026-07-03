@@ -1,58 +1,111 @@
+local servers = {
+	lua_ls = {
+		settings = {
+			Lua = {
+				diagnostics = {
+					globals = { "vim" },
+				},
+				runtime = {
+					version = "LuaJIT",
+				},
+				workspace = {
+					checkThirdParty = false,
+					library = vim.api.nvim_get_runtime_file("", true),
+				},
+				telemetry = {
+					enable = false,
+				},
+			},
+		},
+	},
+	vimls = {},
+	ts_ls = {},
+	html = {},
+	cssls = {},
+	jsonls = {},
+	pyright = {},
+	ruff = {},
+}
+
+local function server_names()
+	local names = vim.tbl_keys(servers)
+	table.sort(names)
+	return names
+end
+
 return {
-    {
-        "neovim/nvim-lspconfig",
-        event = { "BufReadPre", "BufNewFile" },
-        dependencies = {
-            "mason-org/mason.nvim",
-            "mason-org/mason-lspconfig.nvim",
-        },
-        config = function()
-            vim.api.nvim_create_autocmd('LspAttach', {
-                desc = 'LSP actions',
-                callback = function()
-                    local setmap = function(mode, keymap, fn)
-                        local opts = { buffer = true }
-                        vim.keymap.set(mode, keymap, fn, opts)
-                    end
+	{
+		"mason-org/mason.nvim",
+		opts = {},
+	},
+	{
+		"mason-org/mason-lspconfig.nvim",
+		event = { "BufReadPre", "BufNewFile" },
+		dependencies = {
+			"mason-org/mason.nvim",
+			"neovim/nvim-lspconfig",
+		},
+		opts = {
+			ensure_installed = server_names(),
+			automatic_enable = true,
+		},
+		config = function(_, opts)
+			vim.diagnostic.config({
+				severity_sort = true,
+				virtual_text = {
+					source = "if_many",
+					spacing = 2,
+				},
+				float = {
+					border = "rounded",
+					source = "if_many",
+				},
+			})
 
-                    setmap("n", "gd", function() vim.lsp.buf.definition() end)
-                    setmap("n", "K", function() vim.lsp.buf.hover() end)
-                    setmap("n", "<leader>vd", function() vim.diagnostic.open_float() end)
-                    setmap("n", "[d", function() vim.diagnostic.goto_next() end)
-                    setmap("n", "]d", function() vim.diagnostic.goto_prev() end)
-                    setmap("n", "<leader>vca", function() vim.lsp.buf.code_action() end)
-                    setmap("n", "<leader>vrr", function() vim.lsp.buf.references() end)
-                    setmap("n", "<leader>vrn", function() vim.lsp.buf.rename() end)
-                    setmap("i", "<C-h>", function() vim.lsp.buf.signature_help() end)
-                end
-            })
+			for server, config in pairs(servers) do
+				vim.lsp.config(server, config)
+			end
 
-            require('mason').setup()
-            require('mason-lspconfig').setup()
-        end,
-    },
-    {
-        "jay-babu/mason-null-ls.nvim",
-        event = { "BufReadPre", "BufNewFile" },
-        dependencies = {
-            "mason-org/mason.nvim",
-            "nvimtools/none-ls.nvim",
-        },
-        config = function()
-            require("mason").setup()
-            require("mason-null-ls").setup({
+			local group = vim.api.nvim_create_augroup("CustomLsp", { clear = true })
+			vim.api.nvim_create_autocmd("LspAttach", {
+				group = group,
+				desc = "LSP actions",
+				callback = function(event)
+					local setmap = function(mode, keymap, fn)
+						vim.keymap.set(mode, keymap, fn, { buffer = event.buf })
+					end
 
-                ensure_installed = {
-                    -- Opt to list sources here, when available in mason.
-                },
-                automatic_installation = false,
-                handlers = {},
-            })
-            require("null-ls").setup({
-                sources = {
-                    -- Anything not supported by mason.
-                }
-            })
-        end,
-    }
+					setmap("n", "gd", function()
+						vim.lsp.buf.definition()
+					end)
+					setmap("n", "K", function()
+						vim.lsp.buf.hover()
+					end)
+					setmap("n", "<leader>vd", function()
+						vim.diagnostic.open_float()
+					end)
+					setmap("n", "[d", function()
+						vim.diagnostic.jump({ count = 1, float = true })
+					end)
+					setmap("n", "]d", function()
+						vim.diagnostic.jump({ count = -1, float = true })
+					end)
+					setmap("n", "<leader>vca", function()
+						vim.lsp.buf.code_action()
+					end)
+					setmap("n", "<leader>vrr", function()
+						vim.lsp.buf.references()
+					end)
+					setmap("n", "<leader>vrn", function()
+						vim.lsp.buf.rename()
+					end)
+					setmap("i", "<C-h>", function()
+						vim.lsp.buf.signature_help()
+					end)
+				end,
+			})
+
+			require("mason-lspconfig").setup(opts)
+		end,
+	},
 }
